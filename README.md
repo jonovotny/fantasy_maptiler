@@ -3,9 +3,11 @@
 A python tool to create a leaflet style map from multiple image sources.  © 2020 Johannes Novotny and released under the MIT License. See LICENSE.md.
 
 ## Example
- <iframe height=400 src="https://jonovotny.github.io/map.html"></iframe> 
+
+ <iframe src="https://jonovotny.github.io/map.html" height=400></iframe> 
  
 ##Features
+
 * Images can be placed and scaled independently, e.g. to place detail maps into a overall world map
 * Automatically generated Leaflet layers, allowing users to toggle the visibility of individual map images
 * Customizable zoom optiona for each layer, e.g. to only show detail maps at zoom levels at which they are legible
