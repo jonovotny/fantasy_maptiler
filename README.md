@@ -1,10 +1,13 @@
+
 #Fantasy MapTiler
 
-A python tool to create a leaflet style map from multiple image sources.  © 2020 Johannes Novotny and released under the MIT License. See LICENSE.md.
+A python tool to create a leaflet style map from multiple image sources.
+
+© 2020 Johannes Novotny and released under the MIT License. See LICENSE.md.
 
 ## Example
 
- <iframe src="https://jonovotny.github.io/map.html" height=400></iframe> 
+<iframe src="https://jonovotny.github.io/map.html"></iframe> 
  
 ##Features
 
