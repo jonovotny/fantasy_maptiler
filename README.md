@@ -15,7 +15,7 @@ Click to go to live version
 
 * Images can be placed and scaled independently, e.g. to place detail maps into a overall world map
 * Automatically generated Leaflet layers, allowing users to toggle the visibility of individual map images
-* Customizable zoom optiona for each layer, e.g. to only show detail maps at zoom levels at which they are legible
+* Customizable zoom options for each layer, e.g. to only show detail maps at zoom levels at which they are legible
 * (optional) Preliminary image filter support to create an 'underground' effect using a drop shadow
 * (optional) A measuring tool with user-controllable size scale to allow accurate distance measurements
 * (optional) Ability to parse marker information from a remote html source, e.g. to create city labels and quest markers
