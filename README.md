@@ -23,7 +23,7 @@ Click to go to live version
 ## Requirements
 
 * Python 3 (developed with 3.7.4)
-** Additional modules [numpy](https://numpy.org/), [PIL](https://pillow.readthedocs.io/en/stable/), [scipy](https://www.scipy.org/)
+* Additional Python modules [numpy](https://numpy.org/), [PIL](https://pillow.readthedocs.io/en/stable/), [scipy](https://www.scipy.org/)
 
 ## Instructions
 
