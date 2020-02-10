@@ -15,7 +15,7 @@
 		}
 	},
 	"marker_tool_enabled": true,
-	"marker_string_format": "<li><a href=\"https://jonovotny.github.io/map.html?lat={0}&lng={1}&level={2}\"></a></li>",
+	"marker_string_format": "&lt;li&gt;&lt;a href=&quot;https://jonovotny.github.io/map.html?lat={0}&amp;lng={1}&amp;level={2}&quot;&gt;&lt;/a&gt;&lt;/li&gt;",
 	"tile_size": 512,
 	"default_lat": -256,
 	"default_lng": 256,
