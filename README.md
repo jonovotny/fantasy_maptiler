@@ -7,6 +7,8 @@ A python tool to create a leaflet style map from multiple image sources.
 
 ## Example
 
+Click to go to live version 
+
 [![A simple example map](demo.png "Click for a demo")](https://jonovotny.github.io/map.html)
  
 ## Features
@@ -17,3 +19,18 @@ A python tool to create a leaflet style map from multiple image sources.
 * (optional) Preliminary image filter support to create an 'underground' effect using a drop shadow
 * (optional) A measuring tool with user-controllable size scale to allow accurate distance measurements
 * (optional) Ability to parse marker information from a remote html source, e.g. to create city labels and quest markers
+
+## Requirements
+
+* Python 3 (developed with 3.7.4)
+** Additional modules [numpy](https://numpy.org/), [PIL](https://pillow.readthedocs.io/en/stable/), [scipy](https://www.scipy.org/)
+
+## Instructions
+
+To create the example project run the following command on Commandline or PowerShell:
+
+```
+python maptiler.py -c example.json
+```
+
+Check the Json configuration file ([example.json](https://github.com/jonovotny/fantasy_maptiler/blob/master/example.json)) for customization options.
