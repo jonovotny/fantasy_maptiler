@@ -1,5 +1,5 @@
 
-#Fantasy MapTiler
+# Fantasy MapTiler
 
 A python tool to create a leaflet style map from multiple image sources.
 
@@ -7,9 +7,9 @@ A python tool to create a leaflet style map from multiple image sources.
 
 ## Example
 
-<iframe src="https://jonovotny.github.io/map.html"></iframe> 
+[![A simple example map](demo.png "Click for a demo")](https://jonovotny.github.io/map.html)
  
-##Features
+## Features
 
 * Images can be placed and scaled independently, e.g. to place detail maps into a overall world map
 * Automatically generated Leaflet layers, allowing users to toggle the visibility of individual map images
