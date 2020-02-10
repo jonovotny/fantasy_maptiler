@@ -1,0 +1,165 @@
+{
+	"map_name": "Isla del Craneo",
+	"map_levels_min": 1,
+	"map_levels_max": 4,
+	"distance_tool_enabled": true,
+	"distance_tile_size": 100,
+	"distance_settings": {
+		"color": "#b51d21",
+		"unitSystem": "imperial",
+		"unitSystem_custom": {
+			"UNIT_CONV": 1,
+			"SUB_UNIT_CONV": 1980,
+			"UNIT": "furlong",
+			"SUB_UNIT": "hand"
+		}
+	},
+	"marker_tool_enabled": true,
+	"marker_string_format": "<li><a href=\"https://jonovotny.github.io/map.html?lat={0}&lng={1}&level={2}\"></a></li>",
+	"tile_size": 512,
+	"default_lat": -256,
+	"default_lng": 256,
+	"default_zoom": 1,
+	"source_path": "sourcemaps",
+	"output_path": "example",
+	"layers": [
+		{
+			"name": "Isla del Craneo",
+			"type": "base",
+			"defaultVisible": true,
+			"maps": [
+				"Isla del Craneo"
+			]
+		},
+		{
+			"name": "Port Dental",
+			"type": "overlay",
+			"defaultVisible": true,
+			"maps": [
+				"Port Dental",
+				"Lone Tree Island"
+			],
+			"minlevel": 2
+		},
+		{
+			"name": "Nasal Cavities",
+			"type": "overlay",
+			"defaultVisible": false,
+			"maps": [
+				"Nasal Cavities"
+			],
+			"minlevel": 2
+		},
+		{
+			"name": "Quests",
+			"type": "overlay",
+			"defaultVisible": true,
+			"minlevel": 0
+		}
+	],
+	"sourcemaps": {
+		"Isla del Craneo": {
+			"path": "exemplaria.png",
+			"origin": [
+				0,
+				0
+			],
+			"scale": 1.0,
+			"inputlevel": 0
+		},
+		"Port Dental": {
+			"path": "portdental.png",
+			"origin": [
+				218,
+				232
+			],
+			"scale": 0.1555,
+			"inputlevel": 0
+		},
+		"Lone Tree Island": {
+			"path": "lonetree.png",
+			"origin": [
+				278,
+				334
+			],
+			"scale": 0.04,
+			"inputlevel": 0
+		},
+		"Nasal Cavities": {
+			"path": "nasalcavity.png",
+			"origin": [
+				218,
+				232
+			],
+			"scale": 0.1555,
+			"inputlevel": 0,
+			"filters": [
+				{
+					"type": "cutout",
+					"bgpath": "nasalcavitybg.png",
+					"expand": 50,
+					"pixel_threshold": 20,
+					"shadow_offset": [
+						10,
+						-10
+					],
+					"shadow_blur": 5
+				}
+			]
+		}
+	},
+	"labelsources": [
+			{
+				"id": "SourceA",
+				"type": "html",
+				"url": "https://jonovotny.github.io/labelexample.html",
+				"txtTokens": ["\">", "</a"],
+				"ignoreTokens": ["<del>", "\\*\\*"],
+				"latToken": "lat=",
+				"lngToken": "lng=",
+				"levelToken": "level=",
+				"layerToken": "layer=",
+				"groupTokens": ["<h2>","</h2>"],
+				"groups": {
+					"Worldmap Labels": {
+						"labelType": "text",
+						"labelStyle": "label-city"
+					},
+					"Port Dental Labels": {
+						"labelType": "text",
+						"labelStyle": "label-city",
+						"minlevel": 2
+					},
+					"Port Dental Minor Labels": {
+						"labelType": "text",
+						"labelStyle": "label-city",
+						"labelLayer": "Port Dental",
+						"minlevel": 3
+					},
+					"Nasal Cavities Labels": {
+						"labelType": "text",
+						"labelStyle": "label-city",
+						"labelLayer": "Nasal Cavities",
+						"minlevel": 3
+					},
+					"Quests": {
+						"labelType": "icon",
+						"labelStyle": "questIcon",
+						"labelLayer": "Quests"
+					},
+					"Water Labels": {
+						"labelType": "text",
+						"labelStyle": "label-water",
+						"labelLayer": "Isla del Craneo",
+						"minlevel": 0
+					}
+				},
+				"defaultStyle": {
+					"labelType": "text",
+					"labelStyle": "label-region",
+					"minlevel": 0,
+					"labelLayer": "Isla del Craneo"
+				}
+			}
+		]
+}

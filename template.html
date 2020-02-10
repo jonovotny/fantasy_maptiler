@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<title>Worldmap</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
+    <script type="text/javascript" src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="resources/main.css"/>
+	<link rel="stylesheet" type="text/css" href="resources/basic.ruler-src.css"/>
+	<script type="text/javascript" src="https://kit.fontawesome.com/8dda69661a.js" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="resources/Leaflet.LinearMeasurement.js"></script>
+	
+	<!--link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"-->
+	
+</head>
+<body>
+
+
+
+<div id="mapid" style="width:1200px; height: 800px"></div>
+<script>
+
+    var config = 
+<insert config json>
+
+	function containsTokens (line, tokenList) {
+		var contained = false;
+		for (token in tokenList) {
+			if (line.search(tokenList[token]) > -1) {
+				contained = true;
+			}
+		}
+		return contained;
+	}
+	
+	function containsAllTokens (line, tokenList) {
+		var contained = true;
+		for (token in tokenList) {
+			if (line.search(tokenList[token]) == -1) {
+				contained = false;
+			}
+		}
+		return contained;
+	}
+	
+	function parseLayer (line, startIdx, layerDict) {
+		for (layerName in layerDict) {
+			if (line.startsWith(layerName, startIdx)) {
+				return layerName; 
+			}
+		}
+		return "";
+	}
+	
+	function parseString(line, tokens)  {
+		if (containsAllTokens(line, tokens)) {
+			var startIdx = line.search(tokens[0]) + tokens[0].length;
+			var endIdx = line.search(tokens[1]);
+			return line.substr(startIdx, endIdx - startIdx);
+		}
+		return "";
+	}
+	
+	function parseNumber(line, startIdx) {
+		var num = line.substr(startIdx).match(/[-]{0,1}[\d]*[.]{0,1}[\d]+/g);
+		if (Array.isArray(num) && num.length > 0) {
+			return num[0];
+		}
+		return 0;
+	}
+	
+	function updateZoom(map) {
+		var zoomLevel = map.getZoom();
+		for (layerName in layers) {
+			var layer = layers[layerName];
+			if (layer.visible) {
+				for (markerLevel in layer.markers) {
+					var markers = layer.markers[markerLevel];
+					if (markers.visible && zoomLevel < markerLevel) {
+						map.removeLayer(markers.layergroup);
+						markers.visible = false;
+					}
+					if (!markers.visible && zoomLevel >= markerLevel) {
+						map.addLayer(markers.layergroup);
+						markers.visible = true;
+					}					
+				}
+			} else {
+				for (markerLevel in layer.markers) {
+					var markers = layer.markers[markerLevel];
+					if (markers.visible) {
+						map.removeLayer(markers.layergroup);
+						markers.visible = false;
+					}				
+				}
+			}
+		}
+	}
+	
+	if (!String.prototype.format) {
+		String.prototype.format = function() {
+			var args = arguments;
+			return this.replace(/{(\d+)}/g, function(match, number) { 
+				return typeof args[number] != 'undefined'
+				? args[number]
+				: match
+				;
+			});
+		};
+	}
+
+	var layers = {};
+	var baseLayers = {};
+	var overlays = {};
+	var initLayers = [];
+
+	for (var i in config['layers']) {
+		var layer = config['layers'][i];
+		var layerName = layer["name"];
+		var options = {tileSize: 512};
+		if (config.hasOwnProperty("tileSize")) {
+			options.tileSize = config['tileSize'];
+		}
+		
+		layers[layerName] = {};
+		if(layer.hasOwnProperty("maps")) {
+			layers[layerName].tileLayer = L.tileLayer(layerName + '/{z}/{x}/{y}.png', options);
+		} else {
+			layers[layerName].tileLayer = L.layerGroup([]);
+		}
+		layers[layerName].type = layer.type;
+		layers[layerName].visible = layer.defaultVisible;
+		if (layer.defaultVisible) {
+			initLayers.push(layers[layerName].tileLayer);
+		}
+		layers[layerName].markers = {};
+		
+		if (layer.type == "base") {
+			baseLayers[layer.name] = layers[layerName].tileLayer;
+		} else if (layer.type == "overlay") {
+			overlays[layer.name] = layers[layerName].tileLayer;
+		}
+	}
+	
+	var questIcon = L.icon({
+		iconUrl: 'resources/images/quest-icon.png',
+		shadowUrl: 'resources/images/quest-shadow.png',
+		iconSize:     [10, 20], // size of the icon
+		shadowSize:   [20, 20], // size of the shadow
+		iconAnchor:   [5, 20], // point of the icon which will correspond to marker's location
+		shadowAnchor: [10, 20],  // the same for the shadow
+		popupAnchor:  [0, -22] // point from which the popup should open relative to the iconAnchor
+	});
+	
+	var portalIcon = L.icon({
+		iconUrl: 'resources/images/portal-icon.png',
+		shadowUrl: 'resources/images/portal-shadow.png',
+		iconSize:     [20, 30], // size of the icon
+		shadowSize:   [30, 30], // size of the shadow
+		iconAnchor:   [10, 30], // point of the icon which will correspond to marker's location
+		shadowAnchor: [10, 30],  // the same for the shadow
+		popupAnchor:  [0, -32] // point from which the popup should open relative to the iconAnchor
+	});
+	
+
+	var createLabelIcon = function(labelClass,labelText){
+		return L.divIcon({ 
+			iconSize:null,
+			html:'<div class="map-label"><div class="map-label-content ' + labelClass + '">'+labelText+'</div></div>'
+		})
+	}
+
+	
+	for (let i in config['labelsources']) {
+		var labelSrc = config['labelsources'][i];
+		if (labelSrc.type == 'html') {
+			$.get(labelSrc.url, function(html){
+				processLabelsource (config['labelsources'][i], html.split('\n'));
+			}).done(function() {
+				updateZoom(worldmap);
+			});
+		} 
+		/*else if (labelSrc.type == 'html-sop') {
+			$.getJSON('http://whateverorigin.org/get?url=' + encodeURIComponent(labelSrc.url) + '&callback=?', function(json){
+				processLabelsource (config['labelsources'][i], json.contents.split('\n'));
+			}).done(function() {
+				updateZoom(worldmap);
+			});
+		}*/
+		//Additional label parsers could be added here, e.g.
+		//else if (labelSrc.type == 'gsheet') {
+			//load Google Sheet
+		//}
+	}
+	
+	function processLabelsource (src, lines) {
+	var markerStyle = src.defaultStyle;
+		for(var j in lines){
+			var line = lines[j];
+			
+			//Check for group labels
+			if (src.hasOwnProperty("groups") && containsAllTokens(line, src.groupTokens)) {
+				for (groupName in src.groups) {
+					if (line.search(groupName) > -1) {
+						markerStyle = $.extend(true, src.defaultStyle, src.groups[groupName]);
+					}
+				}
+			} 
+			
+			//Check for marker definitions
+			if (containsAllTokens(line, [src.latToken, src.lngToken]) && !containsTokens(line, src.ignoreTokens)) {
+				var text = parseString(line, src.txtTokens);
+				var lat = parseNumber(line, line.search(src.latToken)+src.latToken.length);
+				var lng = parseNumber(line, line.search(src.lngToken)+src.lngToken.length);
+				
+				var lev = markerStyle.minlevel;
+				/*if (containsAllTokens(line, [src.levelToken])) {
+					lev = parseNumber(line, line.search(src.levelToken)+src.levelToken.length);
+					if (lev > config.map_levels_max ) {
+						console.log("Specified level exceeds maximum map zoom ["+line+"]");
+						continue;
+					}
+				}*/
+				
+				var lay = markerStyle.labelLayer;
+				if (containsAllTokens(line, [src.layerToken])) {
+					lay = parseLayer(line, line.search(src.layerToken)+src.layerToken.length, layers);
+					if (lay == "") {
+						console.log("Specified layer not found in cofiguration ["+line+"]");
+						continue;
+					}
+				}
+				
+				if (!layers[lay].markers.hasOwnProperty(lev)) {
+					layers[lay].markers[lev] = {};
+					layers[lay].markers[lev].layergroup = L.layerGroup([]);
+					layers[lay].markers[lev].visible = false;
+				}
+
+				if (markerStyle.labelType == "text") {
+					layers[lay].markers[lev].layergroup.addLayer(L.marker(new L.LatLng(lat, lng), {icon: createLabelIcon(markerStyle.labelStyle, text)}));
+				} else if (markerStyle.labelType == "icon") {
+					layers[lay].markers[lev].layergroup.addLayer(L.marker(new L.LatLng(lat, lng), {icon: window[markerStyle.labelStyle]}).bindPopup(text));
+				}
+			}
+		}
+	}
+
+	var maplat = config.default_lat;
+	var maplng = config.default_lng;
+	var mapzoom = config.default_zoom;
+	
+	var params = (new URL(document.location)).searchParams;
+	if (params.get("lat") != null) {
+		maplat = params.get("lat");
+	}
+	if (params.get("lng") != null) {
+		maplng = params.get("lng");
+	}
+	if (params.get("level") != null) {
+		mapzoom = params.get("level");
+	}
+	
+	var worldmap = L.map('mapid', {crs: L.CRS.Simple, minZoom: config.map_levels_min, maxZoom: config.map_levels_max-1, layers: initLayers}).setView([maplat,maplng], mapzoom);
+	updateZoom(worldmap);
+	
+	worldmap.addControl(L.control.layers(baseLayers, overlays, {position: 'topleft'}));	
+	worldmap.on('overlayadd', function(overlay) {
+		layers[overlay.name].visible = true;
+		updateZoom(worldmap);
+	});
+
+	worldmap.on('overlayremove', function(overlay) {
+		layers[overlay.name].visible = false;
+		updateZoom(worldmap);
+	});
+	
+	if(config.hasOwnProperty("map_name")) {
+		window.document.title = config.map_name;
+	}
+	
+	if (config.distance_tool_enabled) {
+	
+		var distance_settings = {};
+		
+		if (config.hasOwnProperty("distance_settings")) {
+			distance_settings = config.distance_settings;
+		}
+	
+		if (config.hasOwnProperty("distance_tile_size") && config.hasOwnProperty("tile_size") ) {
+			distance_settings.scaleFactor = config.tile_size/config.distance_tile_size;
+		}
+	
+		worldmap.addControl(new L.Control.LinearMeasurement(distance_settings));
+	}
+	
+	if (config.marker_tool_enabled) {
+		L.Control.LinkGenerator = L.Control.extend({
+			onAdd: function (map) {
+				var container = L.DomUtil.create('div', 'leaflet-control leaflet-bar'),
+				me = this,
+				map_container = map.getContainer(),
+				link = L.DomUtil.create('a', 'fas fa-map-marker-alt', container);
+				link.style.fontSize = '18px';
+				link.style.color = 'gray';
+				link.href = '#';
+				link.title = 'Marker Placement Tool';
+				this._map = map;
+
+				L.DomEvent.on(link, 'click', L.DomEvent.stop).on(link, 'click', function(){
+				if(L.DomUtil.hasClass(link, 'icon-active')){
+					L.DomUtil.removeClass(link, 'icon-active');
+					L.DomUtil.removeClass(map_container, 'ruler-map');
+					map.off('click', me.onMapClick, me);
+					if(me.mainLayer){
+						map.removeLayer(me.mainLayer);
+					}
+					me._mainLayer = null;
+				} else {
+					L.DomUtil.addClass(link, 'icon-active');
+					L.DomUtil.addClass(map_container, 'ruler-map');
+					map.on('click', me.onMapClick, me);
+					me.mainLayer = L.layerGroup([]);
+					map.addLayer(me.mainLayer);
+				}
+				});
+				return container;
+			},
+		  
+			onRemove: function(map) {
+				if(this.mainLayer){
+					map.removeLayer(me.mainLayer);
+				}
+			},
+		
+			onMapClick: function (e) {
+				var map = this._map;
+				marker = new L.marker(e.latlng, {draggable:'true'});
+				var position = marker.getLatLng();
+				var zoom = map.getZoom();
+				var link = config.marker_string_format.format(position.lat, position.lng, zoom);
+				marker.bindPopup(link);
+				marker.on('dragend', function(event){
+					var marker = event.target;
+					var position = marker.getLatLng();
+					var link = config.marker_string_format.format(position.lat, position.lng, map.getZoom());
+					marker.bindPopup(link);
+					marker.setLatLng(new L.LatLng(position.lat, position.lng),{draggable:'true'});
+					map.panTo(new L.LatLng(position.lat, position.lng));
+				});
+				marker.addTo(this.mainLayer);
+			}
+		});
+		
+		worldmap.addControl(new L.Control.LinkGenerator({position: 'topleft'}));
+	}
+
+	worldmap.on('zoomend', function () {
+		updateZoom(worldmap);
+	});
+
+	$(window).on("resize", function() {
+		$("#mapid").height($(window).height()-20).width($(window).width()-20);
+		worldmap.invalidateSize();
+	}).trigger("resize");
+</script>
+</body>
+</html>
