@@ -18,7 +18,7 @@ Click to go to live version
 * Customizable zoom options for each layer, e.g. to only show detail maps at zoom levels at which they are legible
 * (optional) Preliminary image filter support to create an 'underground' effect using a drop shadow
 * (optional) A measuring tool with user-controllable size scale to allow accurate distance measurements
-* (optional) Ability to parse marker information from a remote html source, e.g. to create city labels and quest markers
+* (optional) Ability to parse marker information from a remote html source (client side processing to avoid the need for dynamic webhosting), e.g. to create city labels and quest markers.
 
 ## Requirements
 
@@ -218,18 +218,47 @@ Check the Json configuration file ([example.json](https://github.com/jonovotny/f
 	}
 },
 "labelsources": [
-	TODO
+	This list defines location, parsing parameters and display options for labels stored in a seperate web document.
+	This allows editing label text and locations without the need to change the map html file 
+	(e.g. by storing label data in a wiki that can be accessed by players of an RPG campaign).
+	Labels are processed client-side, which avoids the need of dynamic webhosting.
 	
 	{
 		"id": "SourceA",
 		"type": "html",
+			Defines which method is used to fetch the remote document. Currently only html documents are supported.
+			Trying to load http sources while hosting the map on https might cause problems.
+			Html label lists may only have a single label group divider or label per line.
+			
 		"url": "https://jonovotny.github.io/labelexample.html",
+			The web location of the label list. 
+			In this example the label list is structured as follows:
+			
+			<h2>Worldmap Labels</h2> 
+				Label groups are separated by html h2 headers.
+			<ul>
+				<li><a href="https://jonovotny.github.io/map.html?lat=-158.25&lng=305.5&level=2">Mt. Sinister</a></li>
+					Label location and text are encoded as html links.
+			</ul>
+			
+			Other ways of parsing the html data can be defined by changing the various search tokens below.			
+			
 		"txtTokens": ["\">", "</a"],
+			The tokens defining start and end of the label's text content. 
+			Quotation marks in the token have to be preceded by a backslash (i.e. \").
+			In the example link above this would parse (start token ">) Mt. Sinister ("</a" end token)
 		"ignoreTokens": ["<del>", "\\*\\*"],
+			If these tokens are found in a line, the line will be ignored even if it contains a valid label definition.
+			This is useful to keep entries in a list (e.g. completed quests) without them showing up on the map.
 		"latToken": "lat=",
 		"lngToken": "lng=",
+			The Latitude and Longitude tokens are required to define the marker location and both need to be present in a line to create a label.
+			The parser attempts to read a decimal number starting right after the defined text token.
 		"levelToken": "level=",
+			This token is optional and used to define at which zoomlevel of the map if accessed via an external link (e.g. in labelexample.html)
 		"layerToken": "layer=",
+			This token is optional and not yet implemented. It defines a list of layers that should be enabled when the map is accessed via an 
+			external link (e.g. in labelexample.html)
 		"groupTokens": ["<h2>","</h2>"],
 		"groups": {
 			"Worldmap Labels": {
